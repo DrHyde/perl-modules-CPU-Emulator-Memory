@@ -1,4 +1,4 @@
-# $Id: Banked.pm,v 1.2 2008/02/14 14:24:10 drhyde Exp $
+# $Id: Banked.pm,v 1.3 2008/02/14 15:24:20 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
@@ -117,6 +117,8 @@ sub bank {
         die("bank: No $_ specified\n")
             if(!exists($params{$_}));
     }
+    die("bank: address and size is out of range\n")
+        if($address < 0 || $address + $size - 1 > $self->{size} - 1);
 
     my $contents ='';
     if($type eq 'ROM') {
@@ -181,7 +183,7 @@ and peek16 are wrappers around it and so are unchanged.
 
 sub peek {
     my($self, $addr) = @_;
-    die("Address $addr out of range") if($addr< 0 || $addr > 0xFFFF);
+    die("Address $addr out of range") if($addr< 0 || $addr > $self->{size} - 1);
     foreach my $bank (@{$self->{overlays}}) {
         if(
             $bank->{address} <= $addr &&
@@ -207,7 +209,7 @@ poke8 and poke16 are wrappers around it and so are unchanged.
 sub poke {
     my($self, $addr, $value) = @_;
     die("Value $value out of range") if($value < 0 || $value > 255);
-    die("Address $addr out of range") if($addr< 0 || $addr > 0xFFFF);
+    die("Address $addr out of range") if($addr< 0 || $addr > $self->{size} - 1);
     $value = chr($value);
     foreach my $bank (@{$self->{overlays}}) {
         if(

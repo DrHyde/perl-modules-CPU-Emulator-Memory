@@ -8,3 +8,4 @@ t/02-file.t
 t/03-banked-memory-ROM.t
 t/04-banked-memory-dynamic.t
 lib/CPU/Emulator/Memory.pm
+t/05-banked-memory-ranges.t

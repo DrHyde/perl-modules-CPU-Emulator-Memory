@@ -1,4 +1,4 @@
-# $Id: Memory.pm,v 1.2 2008/02/14 14:31:36 drhyde Exp $
+# $Id: Memory.pm,v 1.3 2008/02/14 15:24:20 drhyde Exp $
 
 package CPU::Emulator::Memory;
 
@@ -34,7 +34,7 @@ and 'poke'.
 =head2 new
 
 The constructor returns an object representing a flat 64K memory
-space addressable by byte.  It takes two optional named parameters:
+space addressable by byte.  It takes three optional named parameters:
 
 =over
 
@@ -52,16 +52,22 @@ correct size.
 defaults to LITTLE, can be set to BIG.  This matters for the peek16
 and poke16 methods.
 
+=item size
+
+the size of the memory to emulate.  This defaults to 64K (65536 bytes).
+Note that this does *not* have to be a power of two.
+
 =back
 
 =cut
 
 sub new {
     my($class, %params) = @_;
-    my $bytes = chr(0) x 0x10000;
+    $params{size} ||= 0x10000;
+    my $bytes = chr(0) x $params{size};
     if(exists($params{file})) {
         if(-e $params{file}) {
-            $bytes = _readRAM($params{file}, 0x10000);
+            $bytes = _readRAM($params{file}, $params{size});
         } else {
             _writeRAM($params{file}, $bytes)
         }
@@ -69,7 +75,7 @@ sub new {
     return bless(
         {
             contents => $bytes,
-            overlays => [],
+            size     => $params{size},
             ($params{file} ? (file => $params{file}) : ()),
             endianness => $params{endianness} || 'LITTLE'
         },
@@ -79,7 +85,7 @@ sub new {
 
 =head2 peek, peek8
 
-This method takes a single parameter, an address from 0 to 0xFFFF.
+This method takes a single parameter, an address from 0 the memory size - 1.
 It returns the value stored at that address, taking account of what
 secondary memory banks are active.  'peek8' is simply another name
 for the same function, the suffix indicating that it returns an 8
@@ -108,7 +114,7 @@ sub peek16 {
 }
 sub peek {
     my($self, $addr) = @_;
-    die("Address $addr out of range") if($addr< 0 || $addr > 0xFFFF);
+    die("Address $addr out of range") if($addr< 0 || $addr > $self->{size} - 1);
     return ord(substr($self->{contents}, $addr, 1));
 }
 
@@ -146,7 +152,7 @@ sub poke16 {
 sub poke {
     my($self, $addr, $value) = @_;
     die("Value $value out of range") if($value < 0 || $value > 255);
-    die("Address $addr out of range") if($addr< 0 || $addr > 0xFFFF);
+    die("Address $addr out of range") if($addr< 0 || $addr > $self->{size} - 1);
     $value = chr($value);
     substr($self->{contents}, $addr, 1) = $value;
     _writeRAM($self->{file}, $self->{contents})
@@ -185,3 +191,50 @@ sub _writeRAM {
     print $fh $contents || die("Can't write $file\n");
     close($fh);
 }
+
+=head1 SUBCLASSING
+
+Most useful emulators will need a subclass of this module.  For an example,
+look at the CPU::Emulator::Memory::Banked module bundled with it, which
+adds some methods of its own, and overrides the peek and poke methods.
+Note that {peek,poke}{8,16} are *not* overridden but still get all the
+extra magic, as they are simple wrappers around the peek and poke methods.
+
+=head1 BUGS/WARNINGS/LIMITATIONS
+
+It is assumed that the emulated memory will fit in the host's memory.
+
+When memory is disk-backed, the entire memory is written to disk on each
+poke().
+
+The size of a byte in the emulated memory is the same as that of a char
+on the host machine.  Perl only runs on machines with 8 bit bytes.
+
+=head1 FEEDBACK
+
+I welcome feedback about my code, including constructive criticism
+and bug reports.  The best bug reports include files that I can add
+to the test suite, which fail with the current code in CVS and will
+pass once I've fixed the bug.
+
+Feature requests are far more likely to get implemented if you submit
+a patch yourself.
+
+=head1 CVS
+
+L<http://drhyde.cvs.sourceforge.net/drhyde/perlmodules/CPU-Emulator-Memory/>
+
+=head1 AUTHOR, LICENCE and COPYRIGHT
+
+Copyright 2008 David Cantrell E<lt>F<david@cantrell.org.uk>E<gt>
+
+This module is free-as-in-speech software, and may be used,
+distributed, and modified under the same terms as Perl itself.
+
+=head1 CONSPIRACY
+
+This module is also free-as-in-mason software.
+
+=cut
+
+1;

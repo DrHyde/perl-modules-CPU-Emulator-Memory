@@ -1,7 +1,7 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 use CPU::Emulator::Memory;
 
@@ -27,3 +27,7 @@ ok($memory->poke(0, 1) && $memory->peek(0) == 1,
     "Can poke bottom of address range");
 ok($memory->poke(0xFFFF, 1) && $memory->peek(0) == 1,
     "Can poke top of address range");
+
+$memory = CPU::Emulator::Memory->new(size => 100);
+eval { $memory->peek(101); };
+ok($@ =~ /^Address .* out of range/i, "When we set memory size, it works");
