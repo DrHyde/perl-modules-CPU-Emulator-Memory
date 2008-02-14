@@ -1,4 +1,4 @@
-# $Id: Memory.pm,v 1.3 2008/02/14 15:24:20 drhyde Exp $
+# $Id: Memory.pm,v 1.4 2008/02/14 16:06:47 drhyde Exp $
 
 package CPU::Emulator::Memory;
 
@@ -67,9 +67,9 @@ sub new {
     my $bytes = chr(0) x $params{size};
     if(exists($params{file})) {
         if(-e $params{file}) {
-            $bytes = _readRAM($params{file}, $params{size});
+            $bytes = $class->_readRAM($params{file}, $params{size});
         } else {
-            _writeRAM($params{file}, $bytes)
+            $class->_writeRAM($params{file}, $bytes)
         }
     }
     return bless(
@@ -155,7 +155,7 @@ sub poke {
     die("Address $addr out of range") if($addr< 0 || $addr > $self->{size} - 1);
     $value = chr($value);
     substr($self->{contents}, $addr, 1) = $value;
-    _writeRAM($self->{file}, $self->{contents})
+    $self->_writeRAM($self->{file}, $self->{contents})
         if(exists($self->{file}));
     return 1;
 }
@@ -163,7 +163,7 @@ sub poke {
 # input: filename, required size
 # output: file contents, or fatal error
 sub _read_file { 
-    my($file, $size) = @_;
+    my($self, $file, $size) = @_;
     local $/ = undef;
     open(my $fh, $file) || die("Couldn't read $file\n");
     my $contents = <$fh>;
@@ -172,21 +172,19 @@ sub _read_file {
     return $contents;
 }
 
-sub _readROM { _read_file(@_); }
-
 # input: filename, required size
 # output: file contents, or fatal error
 sub _readRAM {
-    my($file, $size) = @_;
-    my $contents = _read_file($file, $size);
-    _writeRAM($file, $contents);
+    my($self, $file, $size) = @_;
+    my $contents = $self->_read_file($file, $size);
+    $self->_writeRAM($file, $contents);
     return $contents;
 }
 
 # input: filename, data
 # output: none, fatal on error
 sub _writeRAM {
-    my($file, $contents) = @_;
+    my($self, $file, $contents) = @_;
     open(my $fh, '>', $file) || die("Can't write $file\n");
     print $fh $contents || die("Can't write $file\n");
     close($fh);
@@ -199,6 +197,27 @@ look at the CPU::Emulator::Memory::Banked module bundled with it, which
 adds some methods of its own, and overrides the peek and poke methods.
 Note that {peek,poke}{8,16} are *not* overridden but still get all the
 extra magic, as they are simple wrappers around the peek and poke methods.
+
+You may use the _readRAM and _writeRAM methods for disk-backed RAM, and
+_read_file may be useful for ROM.  These
+are only useful for subclasses:
+
+=over
+
+=item _read_file
+
+Takes a filename and the required size, returns the file's contents
+
+=item _readRAM
+
+Takes a filename and the required size, returns the file's contents and
+checks that the file is writeable.
+
+=item _writeRAM
+
+Takes a filename and a chunk of data, writes the data to the file.
+
+=back
 
 =head1 BUGS/WARNINGS/LIMITATIONS
 

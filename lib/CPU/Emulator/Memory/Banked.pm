@@ -1,4 +1,4 @@
-# $Id: Banked.pm,v 1.3 2008/02/14 15:24:20 drhyde Exp $
+# $Id: Banked.pm,v 1.4 2008/02/14 16:06:47 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
@@ -124,10 +124,10 @@ sub bank {
     if($type eq 'ROM') {
         die("For ROM banks you need to specify a file\n")
             unless(exists($params{file}));
-        $contents = _readROM($params{file}, $size);
+        $contents = $self->_readROM($params{file}, $size);
     } elsif($type eq 'RAM') {
         $contents = (exists($params{file}))
-            ? _readRAM($params{file}, $size)
+            ? $self->_readRAM($params{file}, $size)
             : chr(0) x $size;
     } elsif($type eq 'dynamic') {
         die("For dynamic banks you need to specify function_read and function_write\n")
@@ -218,12 +218,12 @@ sub poke {
         ) {
             if($bank->{type} eq 'RAM') {
                 substr($bank->{contents}, $addr - $bank->{address}, 1) = $value;
-                _writeRAM($bank->{file}, $bank->{contents})
+                $self->_writeRAM($bank->{file}, $bank->{contents})
                     if(exists($bank->{file}));
                 return 1;
             } elsif($bank->{type} eq 'ROM' && $bank->{writethrough}) {
                 substr($self->{contents}, $addr, 1) = $value;
-                _writeRAM($self->{file}, $self->{contents})
+                $self->_writeRAM($self->{file}, $self->{contents})
                     if(exists($self->{file}));
                 return 1;
             } elsif($bank->{type} eq 'ROM') {
@@ -236,39 +236,52 @@ sub poke {
         }
     }
     substr($self->{contents}, $addr, 1) = $value;
-    _writeRAM($self->{file}, $self->{contents})
+    $self->_writeRAM($self->{file}, $self->{contents})
         if(exists($self->{file}));
     return 1;
 }
 
-# input: filename, required size
-# output: file contents, or fatal error
-sub _read_file { 
-    my($file, $size) = @_;
-    local $/ = undef;
-    open(my $fh, $file) || die("Couldn't read $file\n");
-    my $contents = <$fh>;
-    die("$file is wrong size\n") unless(length($contents) == $size);
-    close($fh);
-    return $contents;
+sub _readROM {
+    my($self, @params) = @_;
+    $self->_read_file(@params);
 }
 
-sub _readROM { _read_file(@_); }
+=head1 SUBCLASSING
 
-# input: filename, required size
-# output: file contents, or fatal error
-sub _readRAM {
-    my($file, $size) = @_;
-    my $contents = _read_file($file, $size);
-    _writeRAM($file, $contents);
-    return $contents;
-}
+The private method _readROM may be useful for subclasses.  It is a
+conveniently-named wrapper around the parent class's _read_file.
 
-# input: filename, data
-# output: none, fatal on error
-sub _writeRAM {
-    my($file, $contents) = @_;
-    open(my $fh, '>', $file) || die("Can't write $file\n");
-    print $fh $contents || die("Can't write $file\n");
-    close($fh);
-}
+=head1 BUGS/WARNINGS/LIMITATIONS
+
+All those inherited from the parent class.
+
+No others known.
+
+=head1 FEEDBACK
+
+I welcome feedback about my code, including constructive criticism
+and bug reports.  The best bug reports include files that I can add
+to the test suite, which fail with the current code in CVS and will
+pass once I've fixed the bug.
+
+Feature requests are far more likely to get implemented if you submit
+a patch yourself.
+
+=head1 CVS
+
+L<http://drhyde.cvs.sourceforge.net/drhyde/perlmodules/CPU-Emulator-Memory/>
+
+=head1 AUTHOR, LICENCE and COPYRIGHT
+
+Copyright 2008 David Cantrell E<lt>F<david@cantrell.org.uk>E<gt>
+
+This module is free-as-in-speech software, and may be used,
+distributed, and modified under the same terms as Perl itself.
+
+=head1 CONSPIRACY
+
+This module is also free-as-in-mason software.
+
+=cut
+
+1;
