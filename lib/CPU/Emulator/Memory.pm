@@ -1,4 +1,4 @@
-# $Id: Memory.pm,v 1.1 2008/02/14 14:24:10 drhyde Exp $
+# $Id: Memory.pm,v 1.2 2008/02/14 14:31:36 drhyde Exp $
 
 package CPU::Emulator::Memory;
 
@@ -73,7 +73,7 @@ sub new {
             ($params{file} ? (file => $params{file}) : ()),
             endianness => $params{endianness} || 'LITTLE'
         },
-        __PACKAGE__
+        $class
     );
 }
 
