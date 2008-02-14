@@ -1,9 +1,11 @@
-# $Id: Banked.pm,v 1.1 2008/02/14 14:03:56 drhyde Exp $
+# $Id: Banked.pm,v 1.2 2008/02/14 14:24:10 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
 use strict;
 use warnings;
+
+use base qw(CPU::Emulator::Memory);
 
 use vars qw($VERSION);
 
@@ -37,8 +39,9 @@ CPU::Emulator::Memory::Banked - banked memory for a CPU emulator
 
 =head1 DESCRIPTION
 
-This class provides a flat 64K array of values.  You can then
-temporarily replace chunks of that array with other arrays, to
+This class adds multiple memory banks to the flat memory space provided
+by CPU::Emulator::Memory.  These
+temporarily replace chunks of memory with other chunk, to
 simulate bank-switching.  Those chunks can be of arbitrary size,
 and can be either RAM, ROM, or 'dynamic', meaning that instead
 of being just dumb storage, when you read or write them perl code
@@ -46,51 +49,8 @@ gets run.
 
 =head1 METHODS
 
-=head2 new
-
-The constructor returns an object representing a flat 64K memory
-space addressable by byte.  It takes two optional named parameters:
-
-=over
-
-=item file
-
-if provided, will provide a disc-based backup of the
-RAM represented.  This file will be read when the object is created
-(if it exists) and written whenever anything is altered.  If no
-file exists or no filename is provided, then memory is initialised
-to all zeroes.  If the file exists it must be writeable and of the
-correct size.
-
-=item endianness
-
-defaults to LITTLE, can be set to BIG.  This matters for the peek16
-and poke16 methods.
-
-=back
-
-=cut
-
-sub new {
-    my($class, %params) = @_;
-    my $bytes = chr(0) x 0x10000;
-    if(exists($params{file})) {
-        if(-e $params{file}) {
-            $bytes = _readRAM($params{file}, 0x10000);
-        } else {
-            _writeRAM($params{file}, $bytes)
-        }
-    }
-    return bless(
-        {
-            contents => $bytes,
-            overlays => [],
-            ($params{file} ? (file => $params{file}) : ()),
-            endianness => $params{endianness} || 'LITTLE'
-        },
-        __PACKAGE__
-    );
-}
+It inherits all the methods from CPU::Emulator::Memory, including the
+constructor, and also implements ...
 
 =head2 bank
 
@@ -211,34 +171,15 @@ sub unbank {
     ];
 }
 
-=head2 peek, peek8
+=head2 peek
 
-This method takes a single parameter, an address from 0 to 0xFFFF.
-It returns the value stored at that address, taking account of what
-secondary memory banks are active.  'peek8' is simply another name
-for the same function, the suffix indicating that it returns an 8
-bit (ie one byte) value.
-
-=head2 peek16
-
-As peek and peek8, except it returns a 16 bit value.  This is where
-endianness matters.
+This is replaced by a version that is aware of memory banks but has the
+same interface.  peek8
+and peek16 are wrappers around it and so are unchanged.
 
 =cut
 
-sub peek { ord(_peek(@_)); }
-sub peek8 { peek(@_); }
-sub peek16 {
-    my($self, $address) = @_;
-    # assume little-endian
-    my $r = $self->peek($address) + 256 * $self->peek($address + 1);
-    # swap bytes if necessary
-    if($self->{endianness} eq 'BIG') {
-        $r = (($r & 0xFF) << 8) + int($r / 256);
-    }
-    return $r;
-}
-sub _peek {
+sub peek {
     my($self, $addr) = @_;
     die("Address $addr out of range") if($addr< 0 || $addr > 0xFFFF);
     foreach my $bank (@{$self->{overlays}}) {
@@ -247,48 +188,22 @@ sub _peek {
             $bank->{address} + $bank->{size} > $addr
         ) {
             if($bank->{type} eq 'dynamic') {
-                return chr($bank->{function_read}->($self, $addr));
+                return $bank->{function_read}->($self, $addr);
             } else {
-                return substr($bank->{contents}, $addr - $bank->{address}, 1);
+                return ord(substr($bank->{contents}, $addr - $bank->{address}, 1));
             }
         }
     }
-    return substr($self->{contents}, $addr, 1);
+    return ord(substr($self->{contents}, $addr, 1));
 }
 
-=head2 poke, poke8
+=head2 poke
 
-This method takes two parameters, an address and a byte value.
-The value is written to the address, into whichever bank is currently
-selected at that address.  If that address is ROM and writethrough is
-enabled for that bank, then the value is written to the main memory.
-
-It returns 1 if something was written, or 0 if nothing was written.
-
-=head2 poke16
-
-This method takes two parameters, an address and a 16-bit value.
-The value is written to memory as two bytes at the address specified
-and the following one.  This is where endianness matters.
-If either
-byte is ROM and writethrough is enabled for that bank, then
-that address's value is written to the main memory.
-
-Return values are undefined.
+This method is replaced by a bank-aware version with the same interface.
+poke8 and poke16 are wrappers around it and so are unchanged.
 
 =cut
 
-sub poke8 { poke(@_); }
-sub poke16 {
-    my($self, $addr, $value) = @_;
-    # if BIGendian, swap bytes, ...
-    if($self->{endianness} eq 'BIG') {
-        $value = (($value & 0xFF) << 8) + int($value / 256);
-    }
-    # write in little-endian order
-    $self->poke($addr, $value & 0xFF);
-    $self->poke($addr + 1, ($value >> 8));
-}
 sub poke {
     my($self, $addr, $value) = @_;
     die("Value $value out of range") if($value < 0 || $value > 255);

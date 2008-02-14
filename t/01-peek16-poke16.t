@@ -3,15 +3,15 @@ $^W = 1;
 
 use Test::More tests => 3;
 
-use CPU::Emulator::Memory::Banked;
+use CPU::Emulator::Memory;
 
-my $memory = CPU::Emulator::Memory::Banked->new();
+my $memory = CPU::Emulator::Memory->new();
 ok($memory->poke16(0x1000, 258) && $memory->peek16(0x1000) == 258,
     "Can peek and poke 16 bit values");
 ok($memory->peek(0x1000) == 2 && $memory->peek(0x1001) == 1,
     "Little-endian works");
 
-$memory = CPU::Emulator::Memory::Banked->new(
+$memory = CPU::Emulator::Memory->new(
     endianness => 'BIG'
 );
 $memory->poke16(0x1000, 258);

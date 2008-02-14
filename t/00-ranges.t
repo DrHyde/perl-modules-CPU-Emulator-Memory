@@ -3,9 +3,9 @@ $^W = 1;
 
 use Test::More tests => 10;
 
-use CPU::Emulator::Memory::Banked;
+use CPU::Emulator::Memory;
 
-my $memory = CPU::Emulator::Memory::Banked->new();
+my $memory = CPU::Emulator::Memory->new();
 
 # out of range errors
 eval { $memory->peek(-1); };
