@@ -1,4 +1,4 @@
-# $Id: Banked.pm,v 1.4 2008/02/14 16:06:47 drhyde Exp $
+# $Id: Banked.pm,v 1.5 2008/02/14 21:17:08 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
@@ -10,10 +10,6 @@ use base qw(CPU::Emulator::Memory);
 use vars qw($VERSION);
 
 $VERSION = '1.0';
-
-local $SIG{__DIE__} = sub {
-    die(__PACKAGE__.": $_[0]\n");
-};
 
 =head1 NAME
 

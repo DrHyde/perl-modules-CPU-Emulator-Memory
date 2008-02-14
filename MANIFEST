@@ -10,3 +10,4 @@ t/04-banked-memory-dynamic.t
 lib/CPU/Emulator/Memory.pm
 t/05-banked-memory-ranges.t
 TODO
+t/06-initialise-from-string.t
