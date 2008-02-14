@@ -3,7 +3,8 @@ Makefile.PL
 README
 lib/CPU/Emulator/Memory/Banked.pm
 t/00-ranges.t
-t/01-peek16-poke16.t
-t/02-banked-memory-main-RAM-is-file.t
+t/01-peek-poke-8-16.t
+t/02-file.t
 t/03-banked-memory-ROM.t
 t/04-banked-memory-dynamic.t
+lib/CPU/Emulator/Memory.pm

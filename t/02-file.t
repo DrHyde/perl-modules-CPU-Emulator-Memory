@@ -3,10 +3,10 @@ $^W = 1;
 
 use Test::More tests => 5;
 
-use CPU::Emulator::Memory::Banked;
+use CPU::Emulator::Memory;
 
 unlink 'newfile.ram';
-my $memory = CPU::Emulator::Memory::Banked->new(file => 'newfile.ram');
+my $memory = CPU::Emulator::Memory->new(file => 'newfile.ram');
 
 # NB using {0xHEXSTUFF} in regexes doesn't work.
 # and the repeated {30000}...{30000} is cos there's a 2^15 - 2 limit
@@ -23,7 +23,7 @@ close($fh);
 
 undef $memory;
 
-my $newmemory = CPU::Emulator::Memory::Banked->new(file => 'newfile.ram');
+my $newmemory = CPU::Emulator::Memory->new(file => 'newfile.ram');
 ok($newmemory->peek(0) == 1, "RAM can be initialised correctly from a file");
 
 unlink 'newfile.ram';
