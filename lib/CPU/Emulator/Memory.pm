@@ -1,4 +1,4 @@
-# $Id: Memory.pm,v 1.4 2008/02/14 16:06:47 drhyde Exp $
+# $Id: Memory.pm,v 1.5 2008/02/14 17:14:35 drhyde Exp $
 
 package CPU::Emulator::Memory;
 
@@ -26,15 +26,15 @@ CPU::Emulator::Memory - memory for a CPU emulator
 
 =head1 DESCRIPTION
 
-This class provides a flat 64K array of values which you can 'peek'
+This class provides a flat array of values which you can 'peek'
 and 'poke'.
 
 =head1 METHODS
 
 =head2 new
 
-The constructor returns an object representing a flat 64K memory
-space addressable by byte.  It takes three optional named parameters:
+The constructor returns an object representing a flat memory
+space addressable by byte.  It takes four optional named parameters:
 
 =over
 
@@ -57,6 +57,11 @@ and poke16 methods.
 the size of the memory to emulate.  This defaults to 64K (65536 bytes).
 Note that this does *not* have to be a power of two.
 
+=item bytes
+
+A string of characters with which to initialise the memory.  Note that
+the length must match the size parameter.
+
 =back
 
 =cut
@@ -64,17 +69,22 @@ Note that this does *not* have to be a power of two.
 sub new {
     my($class, %params) = @_;
     $params{size} ||= 0x10000;
-    my $bytes = chr(0) x $params{size};
+    if(!exists($params{bytes})) {
+        $params{bytes} = chr(0) x $params{size};
+    }
+    die("bytes and size don't match\n")
+        if(length($params{bytes}) != $params{size});
+
     if(exists($params{file})) {
         if(-e $params{file}) {
-            $bytes = $class->_readRAM($params{file}, $params{size});
+            $params{bytes} = $class->_readRAM($params{file}, $params{size});
         } else {
-            $class->_writeRAM($params{file}, $bytes)
+            $class->_writeRAM($params{file}, $params{bytes})
         }
     }
     return bless(
         {
-            contents => $bytes,
+            contents => $params{bytes},
             size     => $params{size},
             ($params{file} ? (file => $params{file}) : ()),
             endianness => $params{endianness} || 'LITTLE'
