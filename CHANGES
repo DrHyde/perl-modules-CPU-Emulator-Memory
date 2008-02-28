@@ -1,3 +1,5 @@
+1.1001  2008-02-28      Forgot to update version in CPU::E::M::B
+                          in previous release
 1.1     2008-02-28      Banked ROMs can now be read from a filehandle as
                           well as from a file;
                         Added dependency on perl 5.6;

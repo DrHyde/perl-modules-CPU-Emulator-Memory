@@ -1,4 +1,4 @@
-# $Id: Banked.pm,v 1.6 2008/02/28 20:40:13 drhyde Exp $
+# $Id: Banked.pm,v 1.7 2008/02/28 23:15:52 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
@@ -10,7 +10,7 @@ use Scalar::Util qw(reftype);
 
 use vars qw($VERSION);
 
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 =head1 NAME
 
