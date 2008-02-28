@@ -1,11 +1,12 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 undef $/;
 
 use CPU::Emulator::Memory::Banked;
+use IO::Scalar;
 
 unlink 'ramfile.ram', 'romfile.rom';
 my $memory = CPU::Emulator::Memory::Banked->new(file => 'ramfile.ram');
@@ -91,3 +92,17 @@ ok($memory->peek(0) == ord('T'), "... and loads the new one");
 ok($memory->peek16(0) == ord('T') + 256 * ord('h'), "peek16 reads from ROM too");
 
 unlink 'ramfile.ram', 'romfile.rom';
+
+$memory->bank(
+    address => 0,
+    size => 1,
+    type => 'ROM',
+    file => IO::Scalar->new(do {
+        (my $foo = <DATA>) =~ s/\s+$//;
+        \$foo;
+    })
+);
+ok($memory->peek(0) == ord('A'), "ROM 'file' can also be a filehandle");
+
+__DATA__
+A

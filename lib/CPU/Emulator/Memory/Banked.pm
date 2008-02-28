@@ -1,4 +1,4 @@
-# $Id: Banked.pm,v 1.5 2008/02/14 21:17:08 drhyde Exp $
+# $Id: Banked.pm,v 1.6 2008/02/28 20:40:13 drhyde Exp $
 
 package CPU::Emulator::Memory::Banked;
 
@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use base qw(CPU::Emulator::Memory);
+use Scalar::Util qw(reftype);
 
 use vars qw($VERSION);
 
@@ -87,6 +88,13 @@ The following optional parameters are also supported:
 
 A file which backs the memory.  For ROM memory this is compulsory,
 for RAM it is optional.
+
+Note, however, that for RAM it must be a read/writeable *file* which
+will be created if necessary, whereas
+for ROM it must be a readable file or a readable *file handle*.  It is
+envisioned that ROMs will often be initialised from data embedded in
+your program.  You can turn a string into a filehandle using IO::Scalar -
+there's an example of this in the tests.
 
 =item writethrough
 
@@ -238,14 +246,24 @@ sub poke {
 }
 
 sub _readROM {
-    my($self, @params) = @_;
-    $self->_read_file(@params);
+    my($self, $file, $size) = @_;
+    if(!ref($file)) { return $self->_read_file($file, $size); }
+
+    if(reftype($file) eq 'GLOB') {
+        local $/ = undef;
+        my $contents = <$file>;
+        die("data in filehandle is wrong size (got ".length($contents).", expected $size)\n") unless(length($contents) == $size);
+        return $contents;
+    } else {
+        die("file mustn't be a ".reftype($file)."-ref");
+    }
 }
 
 =head1 SUBCLASSING
 
-The private method _readROM may be useful for subclasses.  It is a
-conveniently-named wrapper around the parent class's _read_file.
+The private method _readROM may be useful for subclasses.  If passed
+a filename, it is just a wrapper around the parent class's _read_file.
+If passed a reference to a filehandle, it reads from that.
 
 =head1 BUGS/WARNINGS/LIMITATIONS
 
