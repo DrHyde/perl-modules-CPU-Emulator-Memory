@@ -1,12 +1,12 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 21;
-
-undef $/;
+use Test::More tests => 35;
 
 use CPU::Emulator::Memory::Banked;
 use IO::Scalar;
+use IO::File;
+require 't/read_write_binary.pl';
 
 unlink 'ramfile.ram', 'romfile.rom';
 my $memory = CPU::Emulator::Memory::Banked->new(file => 'ramfile.ram');
@@ -14,9 +14,7 @@ my $memory = CPU::Emulator::Memory::Banked->new(file => 'ramfile.ram');
 # NB using {0xHEXSTUFF} in regexes doesn't work.
 # and the repeated {30000}...{30000} is cos there's a 2^15 - 2 limit
 
-open(my $fh, '>', 'romfile.rom') || die("Can't create ROM file for testing\n");
-print $fh 'This is a ROM';
-close($fh);
+write_binary('romfile.rom', 'This is a ROM');
 
 eval { $memory->bank(
     address => 0,
@@ -54,11 +52,11 @@ $memory->unbank(address => 1);
 ok($memory->peek(1) == 1, "With writethrough, RAM gets updated");
 ok($memory->peek(2) == 1, "poke8 worked too");
 
-open($fh, 'romfile.rom') || die("Can't read romfile.rom\n");
-ok(<$fh> eq 'This is a ROM', "ROM files don't get altered");
-close($fh);
-open($fh, 'ramfile.ram') || die("Can't read ramfile.ram\n");
-ok(<$fh> =~ /^\000\001{2}\000{30000}\000{30000}\000{5532}\001$/, "With writethrough, RAM file gets updated correctly");
+$_ = read_binary('romfile.rom');
+ok($_ eq 'This is a ROM', "ROM files don't get altered");
+
+$_ = read_binary('ramfile.ram');
+ok(/^\000\001{2}\000{30000}\000{30000}\000{5532}\001$/, "With writethrough, RAM file gets updated correctly");
 
 $memory->bank(
     address => 0,
@@ -91,8 +89,6 @@ ok($memory->peek(5 + length('This is a ROM')) == 0, "Loading a new overlay finis
 ok($memory->peek(0) == ord('T'), "... and loads the new one");
 ok($memory->peek16(0) == ord('T') + 256 * ord('h'), "peek16 reads from ROM too");
 
-close($fh); # Win32 is buggy, needs file to be closed before it can unlink
-            # see RT 62375
 ok(unlink('ramfile.ram'), "ramfile.ram deleted");
 ok(unlink('romfile.rom'), "romfile.rom deleted");
 
@@ -106,6 +102,47 @@ $memory->bank(
     })
 );
 ok($memory->peek(0) == ord('A'), "ROM 'file' can also be a filehandle");
+
+# test banked ROM with chr(13) and chr(10) inside 
+# - needs binmode to read/write correctly in Win32
+write_binary('romfile.rom', "\x01\x0D\x0A");
+is(-s 'romfile.rom', 3, "binmode was used, size is OK");
+$memory->bank(
+    address => 0,
+    size => 3, 
+    type => 'ROM',
+    file => 'romfile.rom'
+);
+is($memory->peek(0), 1, "peek 1");
+is($memory->peek(1), 13, "peek 13");
+is($memory->peek(2), 10, "peek 10");
+
+# test with filehandle
+open(my $fh, 'romfile.rom') || die("Couldn't read romfile.rom\n");
+$memory->bank(
+    address => 0,
+    size => 3,
+    type => 'ROM',
+    file => $fh
+);
+is($memory->peek(0), 1, "peek 1");
+is($memory->peek(1), 13, "peek 13");
+is($memory->peek(2), 10, "peek 10");
+close $fh;
+
+# test with IO::File
+$memory->bank(
+    address => 0,
+    size => 3,
+    type => 'ROM',
+    file => IO::File->new('romfile.rom', 'r')
+);
+is($memory->peek(0), 1, "peek 1");
+is($memory->peek(1), 13, "peek 13");
+is($memory->peek(2), 10, "peek 10");
+
+undef $memory; # to release IO::File handle
+ok(unlink('romfile.rom'), "romfile.rom deleted");
 
 __DATA__
 A

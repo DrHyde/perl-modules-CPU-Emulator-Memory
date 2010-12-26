@@ -10,7 +10,7 @@ use Scalar::Util qw(reftype);
 
 use vars qw($VERSION);
 
-$VERSION = '1.1';
+$VERSION = '1.1002';
 
 =head1 NAME
 
@@ -251,6 +251,12 @@ sub _readROM {
 
     if(reftype($file) eq 'GLOB') {
         local $/ = undef;
+        # Win32 is stupid, see RT 62379
+        if (eval {$file->can('binmode')}) {
+            $file->binmode; # IO::HANDLE
+        } else {
+            binmode $file;  # file handle
+        }
         my $contents = <$file>;
         die("data in filehandle is wrong size (got ".length($contents).", expected $size)\n") unless(length($contents) == $size);
         return $contents;

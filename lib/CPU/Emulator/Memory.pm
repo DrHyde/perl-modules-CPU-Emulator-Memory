@@ -7,7 +7,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.1';
+$VERSION = '1.1002';
 
 =head1 NAME
 
@@ -172,6 +172,8 @@ sub _read_file {
     my($self, $file, $size) = @_;
     local $/ = undef;
     open(my $fh, $file) || die("Couldn't read $file\n");
+    # Win32 is stupid, see RT 62379
+    binmode($fh);
     my $contents = <$fh>;
     die("$file is wrong size\n") unless(length($contents) == $size);
     close($fh);
@@ -192,6 +194,7 @@ sub _readRAM {
 sub _writeRAM {
     my($self, $file, $contents) = @_;
     open(my $fh, '>', $file) || die("Can't write $file\n");
+    binmode($fh);
     print $fh $contents || die("Can't write $file\n");
     close($fh);
 }
@@ -253,7 +256,8 @@ L<http://www.cantrell.org.uk/cgit/cgit.cgi/perlmodules/>
 
 =head1 THANKS TO
 
-Paulo Custodio for finding and fixing some bugs on Win32, see RT 62375
+Paulo Custodio for finding and fixing some bugs on Win32, see RT 62375,
+62379
 
 =head1 AUTHOR, LICENCE and COPYRIGHT
 
