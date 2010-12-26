@@ -1,7 +1,7 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use CPU::Emulator::Memory;
 
@@ -26,4 +26,5 @@ undef $memory;
 my $newmemory = CPU::Emulator::Memory->new(file => 'newfile.ram');
 ok($newmemory->peek(0) == 1, "RAM can be initialised correctly from a file");
 
-unlink 'newfile.ram';
+# because Win32 is retarded, see RT 62375
+ok(unlink('newfile.ram'), "newfile.ram deleted");

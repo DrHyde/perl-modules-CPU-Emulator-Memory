@@ -235,6 +235,8 @@ poke().
 The size of a byte in the emulated memory is the same as that of a char
 on the host machine.  Perl only runs on machines with 8 bit bytes.
 
+If you find any others, please report them using L<http://rt.cpan.org> or by email to E<lt>bug-CPU-Emulator-Memory@rt.cpan.orgE<gt>.
+
 =head1 FEEDBACK
 
 I welcome feedback about my code, including constructive criticism
@@ -245,9 +247,13 @@ pass once I've fixed the bug.
 Feature requests are far more likely to get implemented if you submit
 a patch yourself.
 
-=head1 CVS
+=head1 SOURCE CODE REPOSITORY
 
-L<http://drhyde.cvs.sourceforge.net/drhyde/perlmodules/CPU-Emulator-Memory/>
+L<http://www.cantrell.org.uk/cgit/cgit.cgi/perlmodules/>
+
+=head1 THANKS TO
+
+Paulo Custodio for finding and fixing some bugs on Win32, see RT 62375
 
 =head1 AUTHOR, LICENCE and COPYRIGHT
 

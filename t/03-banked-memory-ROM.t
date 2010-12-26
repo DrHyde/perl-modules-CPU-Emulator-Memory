@@ -1,7 +1,7 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 19;
+use Test::More tests => 21;
 
 undef $/;
 
@@ -91,7 +91,10 @@ ok($memory->peek(5 + length('This is a ROM')) == 0, "Loading a new overlay finis
 ok($memory->peek(0) == ord('T'), "... and loads the new one");
 ok($memory->peek16(0) == ord('T') + 256 * ord('h'), "peek16 reads from ROM too");
 
-unlink 'ramfile.ram', 'romfile.rom';
+close($fh); # Win32 is buggy, needs file to be closed before it can unlink
+            # see RT 62375
+ok(unlink('ramfile.ram'), "ramfile.ram deleted");
+ok(unlink('romfile.rom'), "romfile.rom deleted");
 
 $memory->bank(
     address => 0,
