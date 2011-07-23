@@ -281,15 +281,15 @@ No others known.
 
 I welcome feedback about my code, including constructive criticism
 and bug reports.  The best bug reports include files that I can add
-to the test suite, which fail with the current code in CVS and will
+to the test suite, which fail with the current code and will
 pass once I've fixed the bug.
 
 Feature requests are far more likely to get implemented if you submit
 a patch yourself.
 
-=head1 CVS
+=head1 SOURCE CODE REPOSITORY
 
-L<http://drhyde.cvs.sourceforge.net/drhyde/perlmodules/CPU-Emulator-Memory/>
+L<git://github.com/DrHyde/perl-modules-CPU-Emulator-Memory.git>
 
 =head1 AUTHOR, LICENCE and COPYRIGHT
 
