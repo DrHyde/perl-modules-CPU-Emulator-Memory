@@ -1,5 +1,3 @@
-# $Id: Banked.pm,v 1.7 2008/02/28 23:15:52 drhyde Exp $
-
 package CPU::Emulator::Memory::Banked;
 
 use strict;
@@ -66,7 +64,8 @@ The base address at which to swap in the extra bank of memory.
 =item size
 
 The size of the bank to swap.  This means that you'll be swapping
-addresses $base_address to $base_address + $size - 1.
+addresses $base_address to $base_address + $size - 1.  
+This defaults to the size of the given C<file>, if supplied.
 
 =item type
 
@@ -116,6 +115,17 @@ return a byte.  function_write's return value is ignored.
 
 sub bank {
     my($self, %params) = @_;
+    
+    # init size from file
+    if(
+        !exists($params{size}) &&  # no size given
+         exists($params{file}) &&  # but a file given
+        !ref($params{file}) &&     # file is not filehandle
+         -s $params{file}          # file exists and has size > 0
+    ) {
+        $params{size} = -s $params{file};
+    }
+
     my($address, $size, $type) = @params{qw(address size type)};
     foreach (qw(address size type)) {
         die("bank: No $_ specified\n")

@@ -1,5 +1,3 @@
-# $Id: Memory.pm,v 1.7 2008/02/28 20:40:13 drhyde Exp $
-
 package CPU::Emulator::Memory;
 
 use strict;
@@ -7,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.1002';
+$VERSION = '1.1003';
 
 =head1 NAME
 
@@ -50,8 +48,9 @@ and poke16 methods.
 
 =item size
 
-the size of the memory to emulate.  This defaults to 64K (65536 bytes).
-Note that this does *not* have to be a power of two.
+the size of the memory to emulate.  This defaults to 64K (65536 bytes), 
+or to the length of the string passed to C<bytes>.
+Note that this does *not* have to be a power of two. 
 
 =item bytes
 
@@ -64,7 +63,10 @@ the length must match the size parameter.
 
 sub new {
     my($class, %params) = @_;
-    $params{size} ||= 0x10000;
+    $params{size} ||=
+        exists($params{bytes})
+            ? length($params{bytes})
+            : 0x10000;
     if(!exists($params{bytes})) {
         $params{bytes} = chr(0) x $params{size};
     }
