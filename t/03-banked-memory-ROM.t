@@ -1,7 +1,7 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 35;
+use Test::More tests => 39;
 
 use CPU::Emulator::Memory::Banked;
 use IO::Scalar;
@@ -16,6 +16,7 @@ my $memory = CPU::Emulator::Memory::Banked->new(file => 'ramfile.ram');
 
 write_binary('romfile.rom', 'This is a ROM');
 
+# no file
 eval { $memory->bank(
     address => 0,
     size    => length('This is a ROM'), 
@@ -23,6 +24,25 @@ eval { $memory->bank(
 ) };
 ok($@, "Can't map ROM without a filename");
 
+# size mismatch
+eval { $memory->bank(
+    address => 0,
+    size    => 1, 
+    type    => 'ROM',
+    file    => 'romfile.rom'
+) };
+like($@, qr/is wrong size/, "size mismatch");
+
+# default size
+$memory->bank(
+    address => 0,
+    type    => 'ROM',
+    file    => 'romfile.rom'
+);
+ok($memory->peek(0)  == ord('T'), "peek returns data from the ROM");
+ok($memory->peek(12) == ord('M'), "peek returns data from the ROM");
+
+# defined size
 $memory->bank(
     address => 0,
     size    => length('This is a ROM'), 
@@ -30,6 +50,7 @@ $memory->bank(
     file    => 'romfile.rom'
 );
 ok($memory->peek(0) == ord('T'), "peek returns data from the ROM");
+ok($memory->peek(12) == ord('M'), "peek returns data from the ROM");
 ok($memory->poke(0, 1) == 0, "poke returns 0 when we try to write ...");
 ok($memory->peek(0) == ord('T'), "... and really didn't change anything");
 ok($memory->peek8(0) == ord('T'), "peek8 reads from ROM too");
@@ -40,7 +61,6 @@ ok($memory->peek(0) == 0, "poking to ROM is ignored when writethrough isn't enab
 
 $memory->bank(
     address => 1,
-    size    => length('This is a ROM'), 
     type    => 'ROM',
     file    => 'romfile.rom',
     writethrough => 1
@@ -60,13 +80,11 @@ ok(/^\000\001{2}\000{30000}\000{30000}\000{5532}\001$/, "With writethrough, RAM 
 
 $memory->bank(
     address => 0,
-    size    => length('This is a ROM'), 
     type    => 'ROM',
     file    => 'romfile.rom'
 );
 $memory->bank(
     address => 6,
-    size    => length('This is a ROM'), 
     type    => 'ROM',
     file    => 'romfile.rom'
 );
@@ -75,13 +93,11 @@ ok($memory->peek(6) == ord('T'), "... and loads the new one");
 
 $memory->bank(
     address => 6,
-    size    => length('This is a ROM'), 
     type    => 'ROM',
     file    => 'romfile.rom'
 );
 $memory->bank(
     address => 0,
-    size    => length('This is a ROM'), 
     type    => 'ROM',
     file    => 'romfile.rom'
 );
