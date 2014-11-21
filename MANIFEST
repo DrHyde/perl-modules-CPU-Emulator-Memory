@@ -16,3 +16,4 @@ t/coverage.sh
 t/pod-coverage.t
 t/pod.t
 t/read_write_binary.pl
+MANIFEST.SKIP
