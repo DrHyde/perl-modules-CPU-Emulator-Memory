@@ -5,15 +5,9 @@ WriteMakefile(
   META_MERGE => {
     license => 'other',
     resources => {
-      repository => {
-        web => 'https://github.com/DrHyde/perl-modules-CPU-Emulator-Memory'
-      },
-      bugtracker => {
-        web => 'https://github.com/DrHyde/perl-modules-CPU-Emulator-Memory/issues/new'
-      },
+      repository => 'https://github.com/DrHyde/perl-modules-CPU-Emulator-Memory',
+      bugtracker => 'https://github.com/DrHyde/perl-modules-CPU-Emulator-Memory/issues'
     },
-    resource => {
-    }
   },
   VERSION_FROM => 'lib/CPU/Emulator/Memory.pm',
   PREREQ_PM    => {
