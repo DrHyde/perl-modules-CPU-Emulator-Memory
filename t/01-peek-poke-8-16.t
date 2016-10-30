@@ -1,7 +1,8 @@
 use strict;
 $^W = 1;
 
-use Test::More tests => 4;
+use Test::More;
+END { done_testing }
 
 use CPU::Emulator::Memory;
 
@@ -18,4 +19,6 @@ $memory = CPU::Emulator::Memory->new(
 );
 $memory->poke16(0x1000, 258);
 ok($memory->peek(0x1000) == 1 && $memory->peek(0x1001) == 2,
-    "Big-endian works");
+    "Big-endian poke16 works");
+ok($memory->peek16(0x1000) == 258,
+    "Big-endian peek16 works");

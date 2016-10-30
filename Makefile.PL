@@ -11,6 +11,7 @@ WriteMakefile(
   },
   VERSION_FROM => 'lib/CPU/Emulator/Memory.pm',
   PREREQ_PM    => {
+    'Test::More'   => 0.88, # done_testing
     'Scalar::Util' => 0,
     'IO::Scalar'   => 0,
     'IO::File'     => 0,

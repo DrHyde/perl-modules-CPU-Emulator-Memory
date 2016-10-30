@@ -63,10 +63,13 @@ the length must match the size parameter.
 
 sub new {
     my($class, %params) = @_;
-    $params{size} ||=
-        exists($params{bytes})
-            ? length($params{bytes})
-            : 0x10000;
+    if(!exists($params{size})) {
+        if(exists($params{bytes})) {
+            $params{size} = length($params{bytes});
+        } else {
+            $params{size} = 0x10000;
+        }
+    }
     if(!exists($params{bytes})) {
         $params{bytes} = chr(0) x $params{size};
     }
