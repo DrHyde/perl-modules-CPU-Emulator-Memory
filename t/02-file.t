@@ -5,7 +5,7 @@ use Test::More tests => 12;
 
 use CPU::Emulator::Memory;
 
-require 't/read_write_binary.pl';
+require './t/read_write_binary.pl';
 
 unlink 'newfile.ram';
 my $memory = CPU::Emulator::Memory->new(file => 'newfile.ram');

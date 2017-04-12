@@ -6,7 +6,7 @@ use Test::More tests => 39;
 use CPU::Emulator::Memory::Banked;
 use IO::Scalar;
 use IO::File;
-require 't/read_write_binary.pl';
+require './t/read_write_binary.pl';
 
 unlink 'ramfile.ram', 'romfile.rom';
 my $memory = CPU::Emulator::Memory::Banked->new(file => 'ramfile.ram');
