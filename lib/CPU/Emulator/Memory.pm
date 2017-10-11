@@ -243,7 +243,7 @@ poke().
 The size of a byte in the emulated memory is the same as that of a char
 on the host machine.  Perl only runs on machines with 8 bit bytes.
 
-If you find any others, please report them using L<http://rt.cpan.org> or by email to E<lt>bug-CPU-Emulator-Memory@rt.cpan.orgE<gt>.
+Bug reports should be made on Github or by email.
 
 =head1 FEEDBACK
 
